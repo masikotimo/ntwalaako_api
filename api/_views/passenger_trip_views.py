@@ -1,14 +1,16 @@
 from django.shortcuts import render
 from api.models import PassengerTrip
 from authentication.models import Passenger
-from rest_framework import viewsets
-from api._serializers.passenger_trip_serializer import PassengerTripSerializer, CreatePassengerTripSerializer, UpdatePassengerTripSerializer
+from rest_framework import viewsets,status, generics
+from api._serializers.passenger_trip_serializer import PassengerTripSerializer, CreatePassengerTripSerializer, PayForPassengerTripSerializer, UpdatePassengerTripSerializer
 from car_booking_api.mixins import view_mixins
 from django.core.cache import cache
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from car_booking_api import filters
 from core.utilities.rest_exceptions import (ValidationError)
+from lnd_grpc import Client
+from rest_framework.response import Response
 
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
@@ -150,3 +152,58 @@ class DeletePassengerTripViewSet(view_mixins.BaseDeleteAPIView):
 
     def get_queryset(self):
         return _get_queryset(self)
+
+
+
+
+class PayPassengerTripView(generics.GenericAPIView):
+    serializer_class = PayForPassengerTripSerializer
+
+    def post(self, request, format=None):
+
+        passenger_trip = request.data.pop('passenger_trip')
+
+        passenger_trip_instances = PassengerTrip.objects.all().filter(id=passenger_trip)
+        if not passenger_trip_instances.exists():
+            raise ValidationError(
+                {'passenger_trip': 'Passenger doesnt exist !'})
+
+        passenger = passenger_trip_instances[0].passenger.user
+        trip = passenger_trip_instances[0].trip
+
+        passengerLnd = Client(lnd_dir = passenger.lnd_directory,macaroon_path= passenger.macaroon_path, tls_cert_path= passenger.tls_cert_path,network = passenger.network,grpc_host= passenger.grpc_host,grpc_port=passenger.grpc_port)
+
+        resp = passengerLnd.send_payment(payment_request=trip.payment_request)
+
+        print("payment sent", resp)
+
+        # return "sucess"
+
+        return Response("success",
+                        status=status.HTTP_201_CREATED)
+
+
+class SettlePassengerTripView(generics.GenericAPIView):
+    serializer_class = PayForPassengerTripSerializer
+
+    def post(self, request, format=None):
+
+        passenger_trip = request.data.pop('passenger_trip')
+
+        passenger_trip_instances = PassengerTrip.objects.all().filter(id=passenger_trip)
+        if not passenger_trip_instances.exists():
+            raise ValidationError(
+                {'passenger_trip': 'Passenger doesnt exist !'})
+
+        
+        trip = passenger_trip_instances[0].trip
+        driver = trip.driver.user
+        driverLnd = Client(lnd_dir = driver.lnd_directory,macaroon_path= driver.macaroon_path, tls_cert_path= driver.tls_cert_path,network = driver.network,grpc_host= driver.grpc_host,grpc_port=driver.grpc_port)
+        resp = driverLnd.settle_invoice(preimage=trip.preimage)
+
+        print("payment has been  settled", resp)
+
+        # return "sucess"
+
+        return Response("payment settled",
+                        status=status.HTTP_201_CREATED)

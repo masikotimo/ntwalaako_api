@@ -73,7 +73,7 @@ class TripSerializer(ModelSerializer):
     class Meta:
         model = api_models.Trip
         fields = ['id', 'vehicle', 'driver', 'pick_up_location',
-                  'destination', 'date', 'reason', 'status', 'started_at', 'ended_at']
+                  'destination', 'date', 'reason', 'status', 'started_at', 'ended_at','cost','preimage','payment_request']
         lookup_field = 'id'
         depth = 1
 

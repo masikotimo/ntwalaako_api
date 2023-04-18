@@ -10,6 +10,14 @@ urlpatterns = [
 
     path(r'', views.ViewAllPassengerTripsListViewSet.as_view(
         {'get': 'list'}), name="view_vehicles"),
+
+    
+    path('pay-trip', views.PayPassengerTripView.as_view(),
+         name='pay for trip'),
+
+    path('settle-trip', views.SettlePassengerTripView.as_view(),
+         name='settle-trip'),
+
     path(r'<str:passenger_id>/', views.ViewPassengerTripsListViewSet.as_view(
         {'get': 'list'}), name="view_vehicles"),
 

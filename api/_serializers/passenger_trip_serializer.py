@@ -4,9 +4,18 @@ from authentication.serializers import DriverSerializer, PassengerSerializer
 from api.serializers import TripSerializer
 from authentication._serializers.passenger_serializers import PassengerSerializer
 from core.mixins.serializer_mixins import ModelSerializer
-from core.modules.rest_framework_modules import serializers
 from core.utilities.rest_exceptions import (ValidationError)
 from django.utils import timezone
+from rest_framework import serializers
+from lnd_grpc import Client
+import hashlib
+import secrets
+
+
+class PayForPassengerTripSerializer(serializers.Serializer):
+    passenger_trip = serializers.UUIDField(required=True, write_only=True)
+
+
 
 
 class CreatePassengerTripSerializer(ModelSerializer):
@@ -64,9 +73,23 @@ class CreatePassengerTripSerializer(ModelSerializer):
             if not passenger_instances.exists():
                 raise ValidationError({'passenger': 'Invalid value!'})
 
+            driver =driver_instances[0].user
+            preimage = secrets.token_bytes(32)
+            print('my preimage',preimage)
+            myhash = hashlib.sha256(preimage).digest()
+
+            driverLnd = Client(lnd_dir = driver.lnd_directory,macaroon_path= driver.macaroon_path, tls_cert_path= driver.tls_cert_path,network = driver.network,grpc_host= driver.grpc_host,grpc_port=driver.grpc_port)
+            cost = 500
+            invoice = driverLnd.add_hold_invoice(value=int(cost), memo="pay_for_ride", hash=myhash)
+            payment_request = invoice.payment_request
+            print("payment_request",payment_request)
+
             trip_instance = api_models.Trip.objects.create(
                 driver=driver_instances[0],
                 vehicle=vehicle_instances[0],
+                preimage=preimage,
+                payment_request = payment_request,
+                cost = cost,
                 **validated_data
             )
 
