@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from api.models import PassengerTrip
-from authentication.models import Passenger
+from api.models import PassengerTrip, Trip
+from authentication.models import Passenger, User
 from rest_framework import viewsets,status, generics
 from api._serializers.passenger_trip_serializer import PassengerTripSerializer, CreatePassengerTripSerializer, PayForPassengerTripSerializer, UpdatePassengerTripSerializer
 from car_booking_api.mixins import view_mixins
@@ -11,6 +11,7 @@ from car_booking_api import filters
 from core.utilities.rest_exceptions import (ValidationError)
 from lnd_grpc import Client
 from rest_framework.response import Response
+import time
 
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
@@ -174,8 +175,17 @@ class PayPassengerTripView(generics.GenericAPIView):
         passengerLnd = Client(lnd_dir = passenger.lnd_directory,macaroon_path= passenger.macaroon_path, tls_cert_path= passenger.tls_cert_path,network = passenger.network,grpc_host= passenger.grpc_host,grpc_port=passenger.grpc_port)
 
         resp = passengerLnd.send_payment(payment_request=trip.payment_request)
+        
+        # print("payment sent", resp)
 
-        print("payment sent", resp)
+        # if resp.payment_error is None:
+        #     print("Payment successful!")
+        # else:
+        #     print("Payment failed:", resp.payment_error)
+
+        trip_instances = Trip.objects.get(id=trip.id)
+        trip_instances.status = "PAID"
+        trip_instances.save()
 
         # return "sucess"
 
@@ -198,12 +208,24 @@ class SettlePassengerTripView(generics.GenericAPIView):
         
         trip = passenger_trip_instances[0].trip
         driver = trip.driver.user
-        driverLnd = Client(lnd_dir = driver.lnd_directory,macaroon_path= driver.macaroon_path, tls_cert_path= driver.tls_cert_path,network = driver.network,grpc_host= driver.grpc_host,grpc_port=driver.grpc_port)
-        resp = driverLnd.settle_invoice(preimage=trip.preimage)
 
-        print("payment has been  settled", resp)
+        try:
+            driverLnd = Client(lnd_dir = driver.lnd_directory,macaroon_path= driver.macaroon_path, tls_cert_path= driver.tls_cert_path,network = driver.network,grpc_host= driver.grpc_host,grpc_port=driver.grpc_port)
+
+            # print('gotten-preimage',trip.preimage)            
+            resp = driverLnd.settle_invoice(preimage=trip.preimage)
+            driver_instances = User.objects.get(Id=driver.Id)
+            driver_instances.wallet_balance = 500.00
+            driver_instances.save()
+
+
+            return Response("Invoice settled successfully, your wallet has been topped up!",
+                        status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Failed to settle invoice:", str(e))
+            return Response("Failed to settle invoice! Either it has expired or its been canceled already",)
+
 
         # return "sucess"
 
-        return Response("payment settled",
-                        status=status.HTTP_201_CREATED)
+        

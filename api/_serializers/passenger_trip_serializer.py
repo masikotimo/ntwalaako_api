@@ -10,6 +10,7 @@ from rest_framework import serializers
 from lnd_grpc import Client
 import hashlib
 import secrets
+import time
 
 
 class PayForPassengerTripSerializer(serializers.Serializer):
@@ -82,6 +83,7 @@ class CreatePassengerTripSerializer(ModelSerializer):
             cost = 500
             invoice = driverLnd.add_hold_invoice(value=int(cost), memo="pay_for_ride", hash=myhash)
             payment_request = invoice.payment_request
+
             print("payment_request",payment_request)
 
             trip_instance = api_models.Trip.objects.create(

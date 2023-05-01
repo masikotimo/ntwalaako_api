@@ -35,7 +35,7 @@ class Vehicle(BaseModel):
 class Trip(BaseModel):
     STATUS = (
         ('Pending', 'Pending'),
-        ('Approved', 'Approved'),
+        ('PAID', 'PAID'),
         ('Declined', 'Declined'),
     )
     id = models.UUIDField(primary_key=True, max_length=50,
