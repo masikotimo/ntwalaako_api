@@ -1,1 +1,1 @@
-web: gunicorn car_booking_api.wsgi --log-file -
+web: gunicorn hitchnride.wsgi --log-file -

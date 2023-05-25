@@ -7,7 +7,6 @@ from core.mixins.serializer_mixins import ModelSerializer
 from core.utilities.rest_exceptions import (ValidationError)
 from django.utils import timezone
 from rest_framework import serializers
-from lnd_grpc import Client
 import hashlib
 import secrets
 import time
@@ -79,10 +78,8 @@ class CreatePassengerTripSerializer(ModelSerializer):
             print('my preimage',preimage)
             myhash = hashlib.sha256(preimage).digest()
 
-            driverLnd = Client(lnd_dir = driver.lnd_directory,macaroon_path= driver.macaroon_path, tls_cert_path= driver.tls_cert_path,network = driver.network,grpc_host= driver.grpc_host,grpc_port=driver.grpc_port)
             cost = 500
-            invoice = driverLnd.add_hold_invoice(value=int(cost), memo="pay_for_ride", hash=myhash)
-            payment_request = invoice.payment_request
+            payment_request = "invoice.payment_request"
 
             print("payment_request",payment_request)
 

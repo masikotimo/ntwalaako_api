@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from car_booking_api import filters
 from core.utilities.rest_exceptions import (ValidationError)
-from lnd_grpc import Client
 from rest_framework.response import Response
 import time
 
@@ -172,9 +171,8 @@ class PayPassengerTripView(generics.GenericAPIView):
         passenger = passenger_trip_instances[0].passenger.user
         trip = passenger_trip_instances[0].trip
 
-        passengerLnd = Client(lnd_dir = passenger.lnd_directory,macaroon_path= passenger.macaroon_path, tls_cert_path= passenger.tls_cert_path,network = passenger.network,grpc_host= passenger.grpc_host,grpc_port=passenger.grpc_port)
 
-        resp = passengerLnd.send_payment(payment_request=trip.payment_request)
+        # resp = "passengerLnd"
         
         # print("payment sent", resp)
 
@@ -210,10 +208,9 @@ class SettlePassengerTripView(generics.GenericAPIView):
         driver = trip.driver.user
 
         try:
-            driverLnd = Client(lnd_dir = driver.lnd_directory,macaroon_path= driver.macaroon_path, tls_cert_path= driver.tls_cert_path,network = driver.network,grpc_host= driver.grpc_host,grpc_port=driver.grpc_port)
 
             # print('gotten-preimage',trip.preimage)            
-            resp = driverLnd.settle_invoice(preimage=trip.preimage)
+            resp = "driverLnd.settle_invoice(preimage=trip.preimage)"
             driver_instances = User.objects.get(Id=driver.Id)
             driver_instances.wallet_balance = 500.00
             driver_instances.save()
