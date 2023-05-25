@@ -1,1 +1,1 @@
-web: gunicorn hitchnride.wsgi --log-file -
+web gunicorn hitchnride.wsgi --log-file -
