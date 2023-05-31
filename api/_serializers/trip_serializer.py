@@ -9,12 +9,11 @@ from core.mixins.serializer_mixins import ModelSerializer
 
 
 class CreateTripSerializer(ModelSerializer):
-    vehicle = serializers.UUIDField()
     driver = serializers.UUIDField()
 
     class Meta:
         model = api_models.Trip
-        fields = ['id', 'vehicle', 'driver', 'pick_up_location',
+        fields = ['id','driver', 'pick_up_location',
                   'destination', 'date', 'reason']
         lookup_field = 'id'
         depth = 2
@@ -27,20 +26,13 @@ class CreateTripSerializer(ModelSerializer):
     def create(self, validated_data):
         _request = self.context['request']
         request = {'request': _request, 'validated_data': validated_data}
-        vehicle = validated_data.pop('vehicle', None)
         driver = validated_data.pop('driver', None)
-
-        if not vehicle:
-            raise ValidationError({'vehicle': 'This field is required!'})
 
         if not driver:
             raise ValidationError({'driver': 'This field is required!'})
 
-        vehicle_instances = api_models.Vehicle.objects.all().filter(id=vehicle)
         driver_instances = auth_models.Driver.objects.all().filter(id=driver)
 
-        if not vehicle_instances.exists():
-            raise ValidationError({'vehicle': 'Invalid value!'})
 
         if not driver_instances.exists():
             raise ValidationError({'driver': 'Invalid value!'})
@@ -60,7 +52,6 @@ class CreateTripSerializer(ModelSerializer):
 
         trip_instance = api_models.Trip.objects.create(
             driver=driver_instances[0],
-            vehicle=vehicle_instances[0],
             **validated_data
         )
         return trip_instance
@@ -72,8 +63,8 @@ class TripSerializer(ModelSerializer):
 
     class Meta:
         model = api_models.Trip
-        fields = ['id', 'vehicle', 'driver', 'pick_up_location',
-                  'destination', 'date', 'reason', 'status', 'started_at', 'ended_at','cost','preimage','payment_request']
+        fields = ['id', 'driver', 'pick_up_location',
+                  'destination', 'date', 'reason', 'status', 'started_at','vehicle', 'ended_at','cost']
         lookup_field = 'id'
         depth = 1
 

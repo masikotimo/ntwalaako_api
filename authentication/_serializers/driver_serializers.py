@@ -1,4 +1,6 @@
 from rest_framework import serializers, generics
+from api._serializers.vehicle_serializer import VehicleSerializer
+from api.models import Vehicle
 
 from authentication.models import User, Driver
 from business_logic.system_users._user import User as UserFacade
@@ -23,6 +25,7 @@ class CreateDriverSerializer(ModelSerializer):
         help_text='Required',
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
+    vehicle = serializers.UUIDField(required=True, write_only=True)
     data = serializers.DictField(
         required=False,
         read_only=True,
@@ -30,20 +33,25 @@ class CreateDriverSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'data','lnd_directory','tls_cert_path','grpc_port','macaroon_path']
+        fields = ['email', 'password','vehicle', 'data']
 
     def create(self, validated_data):
         _request = self.context['request']
         request = {'request': _request, 'validated_data': validated_data}
+
+        
+
+
         return UserFacade().register_driver(request)
 
 
 class DriverSerializer(ModelSerializer):
     user = UserProfileSerializer()
+    vehicle = VehicleSerializer()
 
     class Meta:
         model = Driver
-        fields = ['id', 'user', 'is_available']
+        fields = ['id', 'user','vehicle', 'is_available']
         depth = 2
 
         extra_kwargs = {

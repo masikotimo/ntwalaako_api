@@ -6,5 +6,6 @@ class DriverCreator(Creator):
 
     def create(self, validated_data: dict) -> object:
         user = validated_data.get('user')
-        client = Driver.objects.create(user=user)
+        vehicle = validated_data.get('vehicle')
+        client = Driver.objects.create(user=user,vehicle=vehicle)
         return client

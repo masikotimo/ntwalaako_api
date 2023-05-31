@@ -14,6 +14,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from core.utilities.unique_code_generators import UniqueMonotonicCodeGenerator
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models.signals import post_save, post_delete
+from api.models import Vehicle
 
 
 class UserManager(BaseUserManager):
@@ -26,6 +27,11 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
+
+         # Check if 'vehicle' key exists in extra_fields for the case of drivers with cars
+        # if 'vehicle' in extra_fields:
+        #     extra_fields.pop('vehicle')
+
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
 
@@ -79,12 +85,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), blank=True, unique=True)
     gender = models.CharField(max_length=6, choices=gender_choices, blank=True)
 
-    lnd_directory = models.CharField(_('lnd directory'), max_length=200, blank=True)
-    tls_cert_path = models.CharField(_('tls cert_path'), max_length=200, blank=True)
-    grpc_host = models.CharField(_('grpc host'), max_length=30, blank=True, default="127.0.0.1")
-    grpc_port = models.IntegerField(_('grpc port'), blank=True ,default=10001)
-    macaroon_path = models.CharField(_('macaroon path'), max_length=200, blank=True ,default="")
-    network = models.CharField(_('network'), max_length=30, default="regtest")
 
     is_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(
@@ -190,6 +190,9 @@ class Driver(Registrable):
 
     user = models.OneToOneField(
         User, related_name="Driver", on_delete=models.CASCADE)
+
+    vehicle = models.OneToOneField(
+        Vehicle, related_name="Vehicle", on_delete=models.CASCADE)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

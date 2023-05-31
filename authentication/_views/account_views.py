@@ -4,8 +4,7 @@ Views for carbooking User Authentication (Account) Module
 
 import jwt
 
-from api.models import User
-from authentication.models import PasswordResetInfo
+from authentication.models import PasswordResetInfo, User
 from authentication.serializers import (
     PasswordResetConfirmSerializer, PasswordResetSerializer,
     SendVerificationLinkSerializer, UserLoginSerializer)

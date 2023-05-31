@@ -24,7 +24,6 @@ class CreatePassengerTripSerializer(ModelSerializer):
     destination = serializers.CharField(required=True, write_only=True)
     date = serializers.DateTimeField(required=True, write_only=True)
     reason = serializers.CharField(required=True, write_only=True)
-    vehicle = serializers.UUIDField(required=True, write_only=True)
     driver = serializers.UUIDField(required=True, write_only=True)
 
     data = serializers.DictField(
@@ -34,7 +33,7 @@ class CreatePassengerTripSerializer(ModelSerializer):
 
     class Meta:
         model = api_models.PassengerTrip
-        fields = ['id', 'vehicle', 'driver', 'pick_up_location',
+        fields = ['id', 'driver', 'pick_up_location',
                   'destination', 'date',  'reason', 'passenger', 'data']
 
         extra_kwargs = {
@@ -47,25 +46,19 @@ class CreatePassengerTripSerializer(ModelSerializer):
         try:
             _request = self.context['request']
             request = {'request': _request, 'validated_data': validated_data}
-            vehicle = validated_data.pop('vehicle', None)
             driver = validated_data.pop('driver', None)
             passenger = validated_data.pop('passenger', None)
 
             if not passenger:
                 raise ValidationError({'passenger': 'This field is required!'})
 
-            if not vehicle:
-                raise ValidationError({'vehicle': 'This field is required!'})
 
             if not driver:
                 raise ValidationError({'driver': 'This field is required!'})
 
-            vehicle_instances = api_models.Vehicle.objects.all().filter(id=vehicle)
             driver_instances = auth_models.Driver.objects.all().filter(id=driver)
             passenger_instances = auth_models.Passenger.objects.all().filter(id=passenger)
 
-            if not vehicle_instances.exists():
-                raise ValidationError({'vehicle': 'Invalid value!'})
 
             if not driver_instances.exists():
                 raise ValidationError({'driver': 'Invalid value!'})
@@ -74,20 +67,11 @@ class CreatePassengerTripSerializer(ModelSerializer):
                 raise ValidationError({'passenger': 'Invalid value!'})
 
             driver =driver_instances[0].user
-            preimage = secrets.token_bytes(32)
-            print('my preimage',preimage)
-            myhash = hashlib.sha256(preimage).digest()
 
             cost = 500
-            payment_request = "invoice.payment_request"
-
-            print("payment_request",payment_request)
 
             trip_instance = api_models.Trip.objects.create(
                 driver=driver_instances[0],
-                vehicle=vehicle_instances[0],
-                preimage=preimage,
-                payment_request = payment_request,
                 cost = cost,
                 **validated_data
             )
@@ -160,17 +144,18 @@ class UpdatePassengerTripSerializer(ModelSerializer):
 
         trip_instances.started_at = validated_data.get(
             'started_at')
-        if trip_instances.started_at:
-            trip_instances.vehicle.is_available = False
-            trip_instances.driver.is_available = False
-            trip_instances.driver.save()
+
+        if trip_instances.status =='Approved':
+            trip_instances.driver.vehicle.current_capacity = trip_instances.driver.vehicle.current_capacity + 1
+            trip_instances.driver.vehicle.save()
+            
 
         trip_instances.ended_at = validated_data.get(
             'ended_at', instance.trip.ended_at)
 
         if trip_instances.ended_at:
-            trip_instances.vehicle.is_available = True
-            trip_instances.driver.is_available = True
+            trip_instances.driver.vehicle.current_capacity = 0
+            trip_instances.driver.vehicle.save()
             trip_instances.driver.save()
 
         trip_instances.lastupdated_at = timezone.now()

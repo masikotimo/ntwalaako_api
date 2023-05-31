@@ -23,7 +23,6 @@ class CreatePassengerSerializer(ModelSerializer):
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
     # add logic  organisation view
-    organisation = serializers.CharField(max_length=254,)
     data = serializers.DictField(
         required=False,
         read_only=True,
@@ -31,7 +30,7 @@ class CreatePassengerSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password','organisation', 'data']
+        fields = ['email', 'password', 'data']
 
     def create(self, validated_data):
         _request = self.context['request']
@@ -77,7 +76,7 @@ class PassengerLoginSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password','lnd_directory','tls_cert_path','grpc_port','macaroon_path']
+        fields = ['email', 'password']
 
     def validate(self, attrs):
         login_data = attrs

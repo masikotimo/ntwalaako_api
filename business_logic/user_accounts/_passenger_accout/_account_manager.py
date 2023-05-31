@@ -46,7 +46,6 @@ class AccountCreator():
                     request)  # or AnonymousUser
                 if authenticated_user.__str__() == 'AnonymousUser':
                     authenticated_user = user
-                print(authenticated_user)
                 passenger.registered_by = authenticated_user
                 passenger.lastupdated_by = authenticated_user
                 passenger.save()

@@ -209,8 +209,6 @@ class SettlePassengerTripView(generics.GenericAPIView):
 
         try:
 
-            # print('gotten-preimage',trip.preimage)            
-            resp = "driverLnd.settle_invoice(preimage=trip.preimage)"
             driver_instances = User.objects.get(Id=driver.Id)
             driver_instances.wallet_balance = 500.00
             driver_instances.save()

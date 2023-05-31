@@ -22,7 +22,7 @@ class RegisterUserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password','lnd_directory','tls_cert_path','grpc_port','macaroon_path']
+        fields = ['email', 'password']
 
     def validate(self, attrs):
         return attrs

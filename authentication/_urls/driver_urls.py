@@ -6,6 +6,10 @@ urlpatterns = [
          views.CreateDriverViewSet.as_view({'post': 'create'})),
     path('', views.ViewDriversListViewSet.as_view(
         {'get': 'list'}), name="view_driver"),
+    
+    path(r'available/', views.ViewDriversAvailableListViewSet.as_view(
+    {'get': 'list'}), name="view_available_driver"),
+        
     path(r'<str:id>/', views.RetrieveDriverViewSet.as_view(
         {'get': 'retrieve'}), name="retrieve_driver"),
     path(r'<str:id>/update/',

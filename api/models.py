@@ -1,12 +1,7 @@
 from django.db import models
 
-from authentication.models import User
 from .mixins.base_model_mixin import BaseModel
 import uuid
-from authentication.models import (Driver, Passenger)
-from django.utils import timezone
-from phonenumber_field.modelfields import PhoneNumberField
-
 
 class Vehicle(BaseModel):
     """
@@ -16,9 +11,9 @@ class Vehicle(BaseModel):
                           default=uuid.UUID('a365c526-2028-4985-848c-312a82699c7b'))
     type_of_vehicle = models.CharField(max_length=50, default='Double Cabin')
     brand = models.CharField(max_length=50, default='Toyota')
-    carrying_capacity = models.CharField(max_length=50,
-                                         default='4')
+    carrying_capacity = models.IntegerField(default='4')
     is_available = models.BooleanField(default=True)
+    current_capacity = models.IntegerField(default=0)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -30,12 +25,18 @@ class Vehicle(BaseModel):
         _str = '%s' % self.type_of_vehicle
         return _str
 
+from authentication.models import (Driver, Passenger,User)
+from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
+
+
+
 
 
 class Trip(BaseModel):
     STATUS = (
         ('Pending', 'Pending'),
-        ('PAID', 'PAID'),
+        ('Approved', 'Approved'),
         ('Declined', 'Declined'),
     )
     id = models.UUIDField(primary_key=True, max_length=50,
@@ -43,8 +44,6 @@ class Trip(BaseModel):
     pick_up_location = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
     destination = models.CharField(max_length=100)
-    vehicle = models.ForeignKey(
-        Vehicle, on_delete=models.CASCADE)
     reason = models.CharField(max_length=100)
     driver = models.ForeignKey(
         Driver, on_delete=models.CASCADE)
@@ -56,8 +55,6 @@ class Trip(BaseModel):
 
     cost = models.DecimalField(max_digits=10, decimal_places=2,default=200.00)
     is_completed = models.BooleanField(default=False)
-    preimage = models.BinaryField(default=b'')
-    payment_request = models.CharField(default='',max_length=500)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -246,6 +243,7 @@ class DriverNotification(BaseModel):
 
 
 class PhoneNumber(BaseModel):
+
     id = models.UUIDField(primary_key=True, max_length=50,
                           default=uuid.UUID('a365c526-2028-4985-848c-312a82699c7b'))
     number = PhoneNumberField(max_length=16, unique=True, blank=False)
@@ -263,6 +261,7 @@ class PhoneNumber(BaseModel):
 
 
 class UserPhoneNumber (BaseModel):
+
 
     id = models.UUIDField(primary_key=True, max_length=50,
                           default=uuid.UUID('a365c526-2028-4985-848c-312a82699c7b'))
