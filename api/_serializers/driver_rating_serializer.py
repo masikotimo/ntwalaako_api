@@ -30,12 +30,12 @@ class CreateDriverRatingSerializer(ModelSerializer):
         driver = validated_data.pop('driver', None)
 
         if not driver:
-            raise ValidationError({'driver': 'This field is required!'})
+            raise ValidationError({'detail': 'This field is required!'})
 
         driver_instances = auth_models.Driver.objects.all().filter(id=driver)
 
         if not driver_instances.exists():
-            raise ValidationError({'driver': 'Invalid value!'})
+            raise ValidationError({'detail': 'Driver doesnt exist!'})
 
         rate_instance = api_models.Rating.objects.create(**validated_data)
 

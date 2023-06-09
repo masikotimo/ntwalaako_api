@@ -102,7 +102,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             user_data = attrs
             user = User.objects.filter(email=user_data['email'])
             if not user.exists():
-                raise ValidationError({'email': 'Invalid email!'})
+                raise ValidationError({'detail': 'Invalid email!'})
             self.user = user[0]
 
             reset_instance = PasswordResetInfo.objects.filter(user=self.user)

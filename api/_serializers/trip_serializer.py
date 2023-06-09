@@ -29,13 +29,13 @@ class CreateTripSerializer(ModelSerializer):
         driver = validated_data.pop('driver', None)
 
         if not driver:
-            raise ValidationError({'driver': 'This field is required!'})
+            raise ValidationError({'detail': 'driver field is required!'})
 
         driver_instances = auth_models.Driver.objects.all().filter(id=driver)
 
 
         if not driver_instances.exists():
-            raise ValidationError({'driver': 'Invalid value!'})
+            raise ValidationError({'detail': 'driver field is required!'})
 
         # trip_instances = api_models.Trip.objects.all().filter(
         #     driver=driver_instances[0]

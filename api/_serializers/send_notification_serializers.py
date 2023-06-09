@@ -18,7 +18,7 @@ class SendNotificationSerializer(serializers.Serializer):
         passenger_trip_instances = PassengerTrip.objects.all().filter(id=passenger_trip)
         if not passenger_trip_instances.exists():
             raise ValidationError(
-                {'passenger_trip': 'Passenger doesnt exist !'})
+                {'detail': 'trip doesnt exist !'})
 
         trip = passenger_trip_instances[0].trip
         passenger = passenger_trip_instances[0].passenger

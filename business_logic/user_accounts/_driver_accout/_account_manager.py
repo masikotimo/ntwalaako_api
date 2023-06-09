@@ -27,12 +27,12 @@ class AccountCreator():
             email = validated_data.get('email')
             vehicle = validated_data.pop('vehicle', None)
             if not vehicle:
-                    raise ValidationError({'vehicle': 'This field is required!'})
+                    raise ValidationError({'detail': 'vehicle field is required!'})
 
             vehicle_instances = Vehicle.objects.all().filter(id=vehicle)
 
             if not vehicle_instances.exists():
-                raise ValidationError({'vehicle': 'Vehicle Does not exist!'})
+                raise ValidationError({'detail': 'Vehicle Does not exist!'})
 
             user_count = UserManager().get_list().filter(email=email).count() or 0
             if user_count < 1:

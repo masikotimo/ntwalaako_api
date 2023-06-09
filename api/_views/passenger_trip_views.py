@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from api.models import PassengerTrip, Trip
-from authentication.models import Passenger, User
+from authentication.models import Driver, Passenger, User
 from rest_framework import viewsets,status, generics
 from api._serializers.passenger_trip_serializer import PassengerTripSerializer, CreatePassengerTripSerializer, PayForPassengerTripSerializer, UpdatePassengerTripSerializer
 from car_booking_api.mixins import view_mixins
@@ -20,15 +20,21 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 def _get_queryset(view_instance):
     try:
-        passenger_id = view_instance.kwargs['passenger_id']
+        user_id = view_instance.kwargs['passenger_id']
 
         # 03. Validate Vendor
 
         # ...
-        _passengers = Passenger.objects.filter(id=passenger_id)
+        _passengers = Passenger.objects.filter(id=user_id)
         if not _passengers.exists():
-            raise ValidationError(
-                {'passenger_id': 'passenger with the specified id does not exist!'})
+            drivers = Driver.objects.filter(id=user_id)
+            if not drivers.exists():
+                # User cannot be identified in either model
+                raise ValidationError( {'detail': 'User with the specified id does not exist!'})
+               
+
+            # Retrieve PassengerTrips with matching driver_id
+            return PassengerTrip.objects.filter(trip__driver__id=user_id)
 
         return PassengerTrip.objects.all().filter(passenger=_passengers[0])
     except Exception as exception:
@@ -166,7 +172,7 @@ class PayPassengerTripView(generics.GenericAPIView):
         passenger_trip_instances = PassengerTrip.objects.all().filter(id=passenger_trip)
         if not passenger_trip_instances.exists():
             raise ValidationError(
-                {'passenger_trip': 'Passenger doesnt exist !'})
+                {'detail': 'trip doesnt exist !'})
 
         passenger = passenger_trip_instances[0].passenger.user
         trip = passenger_trip_instances[0].trip
@@ -201,7 +207,7 @@ class SettlePassengerTripView(generics.GenericAPIView):
         passenger_trip_instances = PassengerTrip.objects.all().filter(id=passenger_trip)
         if not passenger_trip_instances.exists():
             raise ValidationError(
-                {'passenger_trip': 'Passenger doesnt exist !'})
+                {'detail': 'trip doesnt exist !'})
 
         
         trip = passenger_trip_instances[0].trip

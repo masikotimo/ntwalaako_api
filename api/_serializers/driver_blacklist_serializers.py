@@ -30,7 +30,7 @@ class CreateDriverBlacklistSerializer(ModelSerializer):
         driver_instances = auth_models.Driver.objects.all().filter(id=driver)
 
         if not driver_instances.exists():
-            raise ValidationError({'driver': 'Invalid value!'})
+            raise ValidationError({'detail': 'Driver doesnt exist!'})
 
         driver_instance = driver_instances[0]
         driver_instance.is_available = False

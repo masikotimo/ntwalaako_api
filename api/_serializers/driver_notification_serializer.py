@@ -28,16 +28,16 @@ class CreateDriverNotificationSerializer(ModelSerializer):
         driver = validated_data.pop('driver', None)
 
         if not driver:
-            raise ValidationError({'driver': 'This field is required!'})
+            raise ValidationError({'detail': 'This field is required!'})
         if not expo_token:
-            raise ValidationError({'expo_token': 'This field is required!'})
+            raise ValidationError({'detail': 'This field is required!'})
 
         driver_instances = auth_models.Driver.objects.all().filter(id=driver)
         notification_instances = api_models.Notification.objects.all().filter(
             expo_token=expo_token)
 
         if not driver_instances.exists():
-            raise ValidationError({'driver': 'Invalid value!'})
+            raise ValidationError({'detail': 'This field is required!'})
 
         if not notification_instances.exists():
             notification_instance = api_models.Notification.objects.create(

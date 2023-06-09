@@ -26,7 +26,7 @@ class CreateNotificationSerializer(ModelSerializer):
         expo_token = validated_data.pop('expo_token', None)
 
         if not expo_token:
-            raise ValidationError({'expo_token': 'This field is required!'})
+            raise ValidationError({'detail': 'This expo token field is required!'})
 
         notification_instance = api_models.Notification.objects.create(expo_token=expo_token
                                                                        )

@@ -50,21 +50,21 @@ class CreatePassengerTripSerializer(ModelSerializer):
             passenger = validated_data.pop('passenger', None)
 
             if not passenger:
-                raise ValidationError({'passenger': 'This field is required!'})
+                raise ValidationError({'detail': 'Passenger field is required!'})
 
 
             if not driver:
-                raise ValidationError({'driver': 'This field is required!'})
+                raise ValidationError({'detail': 'driver field is required!'})
 
             driver_instances = auth_models.Driver.objects.all().filter(id=driver)
             passenger_instances = auth_models.Passenger.objects.all().filter(id=passenger)
 
 
             if not driver_instances.exists():
-                raise ValidationError({'driver': 'Invalid value!'})
+                raise ValidationError({'detail': 'driver field is required!'})
 
             if not passenger_instances.exists():
-                raise ValidationError({'passenger': 'Invalid value!'})
+                raise ValidationError({'detail': 'passenger doesnt exist!'})
 
             driver =driver_instances[0].user
 
