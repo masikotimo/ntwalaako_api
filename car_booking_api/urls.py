@@ -52,6 +52,8 @@ urlpatterns = [
     path('passengertrips/', include(api_urls.passenger_trip_urls)),
 
     path('notification/', include(api_urls.notification_urls)),
+    path('passengernotification/', include(api_urls.passenger_notification_urls)),
+    path('drivernotification/', include(api_urls.driver_notification_urls)),
 
     path('sendnotification/', include(api_urls.send_notification_urls)),
     path('sendDesktopnotification/',

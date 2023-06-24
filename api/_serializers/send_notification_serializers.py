@@ -31,11 +31,11 @@ class SendNotificationSerializer(serializers.Serializer):
 
         if not passenger_notification_instances.exists():
             raise ValidationError(
-                {'passenger': 'Passenger has not yet regisered his application to receive notifications !'})
+                {'detail': 'Passenger has not yet regisered his application to receive notifications !'})
 
         if not driver_notification_instances.exists():
             raise ValidationError(
-                {'Driver': 'Driver has not yet regisered his application to receive notifications !'})
+                {'detail': 'Driver has not yet regisered his application to receive notifications !'})
 
         notification_details = {
             'passenger_token': passenger_notification_instances[0].notification.expo_token,

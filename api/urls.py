@@ -13,6 +13,8 @@ import api._urls.rating_urls as rating_urls
 import api._urls.driver_rating_urls as driver_rating_urls
 import api._urls.reports_urls as reports_urls
 import api._urls.driver_available_urls as driver_available_urls
+import api._urls.passenger_notification as passenger_notification_urls
+import api._urls.driver_notification as driver_notification_urls
 
 
 # add equipments

@@ -3,14 +3,11 @@ import authentication.models as auth_models
 from authentication.serializers import DriverSerializer, PassengerSerializer
 from api.serializers import TripSerializer
 from authentication._serializers.passenger_serializers import PassengerSerializer
+from business_logic.utilities.expo_notification import send_push_message
 from core.mixins.serializer_mixins import ModelSerializer
 from core.utilities.rest_exceptions import (ValidationError)
 from django.utils import timezone
 from rest_framework import serializers
-import hashlib
-import secrets
-import time
-
 
 class PayForPassengerTripSerializer(serializers.Serializer):
     passenger_trip = serializers.UUIDField(required=True, write_only=True)
@@ -82,6 +79,9 @@ class CreatePassengerTripSerializer(ModelSerializer):
                 # **validated_data
             )
 
+            title = "Trip Request"
+            message= "Hello " + driver.email + ", you have ride request  to "+trip_instance.destination
+            send_push_message(driver_instances[0].id,message,title)
             return passenger_trip_instance
 
         except Exception as exception:
@@ -148,6 +148,13 @@ class UpdatePassengerTripSerializer(ModelSerializer):
         if trip_instances.status =='Approved':
             trip_instances.driver.vehicle.current_capacity = trip_instances.driver.vehicle.current_capacity + 1
             trip_instances.driver.vehicle.save()
+
+            passenger_trip_instances = api_models.PassengerTrip.objects.all().filter(trip=trip_instances)
+            passenger_details = passenger_trip_instances[0].passenger
+            title = "Trip Approved"
+            message= "Hello " + passenger_details.user.email + ", your  ride request  to "+trip_instances.destination+" has been approved"
+
+            send_push_message(passenger_details.id,message,title)
             
 
         trip_instances.ended_at = validated_data.get(

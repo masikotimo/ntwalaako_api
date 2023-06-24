@@ -1,37 +1,42 @@
 import requests
-import json
+from core.utilities.rest_exceptions import (ValidationError)
+from api.models import DriverNotification, PassengerNotification
 
 
-def send_push_message(notification_details, extra=None):
+def send_push_message(to , message,title, extra=None):
+
+    user_expo_token =""
+    passenger_notification_instances = PassengerNotification.objects.filter(
+            passenger__id=to)
+
+    driver_notification_instances = DriverNotification.objects.filter(
+        driver__id=to)
+
+    if not passenger_notification_instances.exists():
+        if not driver_notification_instances.exists():
+            raise ValidationError(
+                {'detail': 'Driver/Passenger has not yet regisered his application to receive notifications !'})
+        user_expo_token = driver_notification_instances[0].notification.expo_token
+    
+    else:
+        user_expo_token = passenger_notification_instances[0].notification.expo_token
 
     url = 'https://exp.host/--/api/v2/push/send'
-    data_passenger = [
+    detail = [
         {
-            "to": notification_details['passenger_token'],
-            "title": "Request Approved",
-            "body": "Hello " + notification_details['passenger_name'] + ", your request to "+notification_details['destination'] + " has been approved",
+            "to": user_expo_token,
+            "title": title,
+            "body": message,
             'sound': 'default',
             # 'data': {'someData': 'goes here'},
         },
-
-    ]
-    data_driver = [
-
-        {
-            "to": notification_details['driver_token'],
-            "title": "Request Approved",
-            "body": "Hello " + notification_details['driver_name'] + ", you have been assigned a trip going to "+notification_details['destination'],
-            'sound': 'default',
-            # 'data': {'someData': 'goes here'},
-        }
     ]
 
     try:
         res = []
-        res_passenger = requests.post(url, json=data_passenger)
-        res_driver = requests.post(url, json=data_driver)
-        res.append(res_passenger.json())
-        res.append(res_driver.json())
+        res_details = requests.post(url, json=detail)
+        res.append(res_details.json())
+        print("notification dets",res)
 
         return res
     except Exception as exception:
